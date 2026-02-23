@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #f6f4ee;
+  --ink: #17140f;
+  --paper: #fffdf6;
+  --paper-strong: #f0ebde;
+  --accent: #0c7c59;
+  --accent-ink: #e8fff4;
+  --warn: #9f3926;
+  --edge: #d1c8b6;
+  --shadow: 0 18px 40px rgba(12, 22, 16, 0.14);
+}
+
+@theme inline {
+  --font-display: var(--font-display);
+  --font-code: var(--font-code);
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  font-family:
+    var(--font-code), ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  background:
+    radial-gradient(circle at 10% -5%, #ffdcc8 2%, transparent 36%),
+    radial-gradient(circle at 92% 8%, #c5f6e3 3%, transparent 34%),
+    linear-gradient(150deg, #faf7f0 0%, #f2ecdf 45%, #f7f4ec 100%);
+  min-height: 100vh;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+a {
+  color: inherit;
+}
