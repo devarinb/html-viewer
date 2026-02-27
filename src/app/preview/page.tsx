@@ -39,38 +39,23 @@ function PreviewView() {
       const parsed = parsePreviewPayload(
         sessionStorage.getItem(getPreviewStorageKey(token)),
       );
-      if (!parsed) {
-        return false;
-      }
-
+      if (!parsed) return false;
       resolved = true;
       setState({ mode: "ready", payload: parsed });
       return true;
     };
 
-    if (readLocalPayload()) {
-      return;
-    }
+    if (readLocalPayload()) return;
 
     const onMessage = (event: MessageEvent<unknown>) => {
-      if (event.origin !== window.location.origin) {
-        return;
-      }
-
-      if (!isPreviewPayloadMessage(event.data) || event.data.token !== token) {
-        return;
-      }
+      if (event.origin !== window.location.origin) return;
+      if (!isPreviewPayloadMessage(event.data) || event.data.token !== token) return;
 
       const parsed = parsePreviewPayload(event.data.payload);
-      if (!parsed) {
-        return;
-      }
+      if (!parsed) return;
 
       resolved = true;
-      sessionStorage.setItem(
-        getPreviewStorageKey(token),
-        JSON.stringify(parsed),
-      );
+      sessionStorage.setItem(getPreviewStorageKey(token), JSON.stringify(parsed));
       setState({ mode: "ready", payload: parsed });
     };
 
@@ -85,14 +70,10 @@ function PreviewView() {
     }
 
     const timer = window.setTimeout(() => {
-      if (resolved) {
-        return;
-      }
-
+      if (resolved) return;
       setState({
         mode: "error",
-        message:
-          "Preview payload not found in this session. Return to the editor and click Open Preview Tab again.",
+        message: "Preview payload not found. Return to the editor and click Preview again.",
       });
     }, 1400);
 
@@ -103,18 +84,23 @@ function PreviewView() {
   }, [token]);
 
   const srcDoc = useMemo(() => {
-    if (state.mode !== "ready") {
-      return "";
-    }
-
+    if (state.mode !== "ready") return "";
     return buildPreviewDocument(state.payload.html, state.payload.baseUrl);
   }, [state]);
 
   if (state.mode === "loading") {
     return (
-      <main className="grid min-h-screen place-items-center px-4">
-        <div className="rounded-2xl border border-[var(--edge)] bg-[var(--paper)] px-6 py-5 text-sm text-[#4f4434] shadow-[var(--shadow)]">
-          Preparing preview...
+      <main className="grid min-h-screen place-items-center px-4" style={{ background: "var(--bg)" }}>
+        <div
+          className="rounded-2xl px-6 py-5 text-sm font-medium"
+          style={{
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            color: "var(--ink-2)",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.06)",
+          }}
+        >
+          Preparing preview…
         </div>
       </main>
     );
@@ -122,14 +108,22 @@ function PreviewView() {
 
   if (state.mode === "error") {
     return (
-      <main className="grid min-h-screen place-items-center px-4">
-        <section className="max-w-xl rounded-3xl border border-[var(--edge)] bg-[var(--paper)] p-6 text-sm leading-6 text-[#4f4434] shadow-[var(--shadow)]">
-          <h1 className="font-[var(--font-display)] text-3xl text-[var(--ink)]">
+      <main className="grid min-h-screen place-items-center px-4" style={{ background: "var(--bg)" }}>
+        <section
+          className="max-w-md rounded-2xl p-6 text-sm leading-6"
+          style={{
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            color: "var(--ink-2)",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.06)",
+          }}
+        >
+          <h1 className="text-xl font-bold" style={{ color: "var(--ink)" }}>
             Cannot render preview
           </h1>
-          <p className="mt-3">{state.message}</p>
+          <p className="mt-2">{state.message}</p>
           <Link
-            className="mt-5 inline-block rounded-full bg-[var(--accent)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--accent-ink)]"
+            className="btn btn-primary mt-5 inline-flex"
             href="/"
           >
             Back to Editor
@@ -141,22 +135,34 @@ function PreviewView() {
 
   return (
     <main className="flex min-h-screen flex-col">
-      <header className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-[var(--edge)] bg-[var(--paper)] px-4 py-3 text-xs md:text-sm">
-        <span className="font-semibold uppercase tracking-[0.1em] text-[#63553f]">
-          Trusted Preview
+      <header
+        className="flex flex-wrap items-center gap-x-3 gap-y-1 px-5 py-3 text-xs md:text-sm"
+        style={{
+          background: "var(--surface)",
+          borderBottom: "1px solid var(--border)",
+        }}
+      >
+        <span
+          className="text-[11px] font-bold uppercase tracking-[0.12em]"
+          style={{ color: "var(--accent)" }}
+        >
+          Preview
         </span>
-        <span className="text-[#4f4434]">
+        <span style={{ color: "var(--ink-3)" }}>
           Rendered {new Date(state.payload.createdAt).toLocaleString()}
         </span>
-        {state.payload.baseUrl ? (
-          <span className="rounded-md bg-[var(--paper-strong)] px-2 py-1 text-[#5f533f]">
-            Base URL: {state.payload.baseUrl}
+        {state.payload.baseUrl && (
+          <span
+            className="rounded-md px-2 py-1 text-[11px] font-medium"
+            style={{ background: "var(--surface-2)", color: "var(--ink-2)" }}
+          >
+            Base: {state.payload.baseUrl}
           </span>
-        ) : null}
+        )}
       </header>
       <iframe
-        className="h-[calc(100vh-54px)] w-full border-0 bg-white"
-        sandbox="allow-downloads allow-forms allow-modals allow-popups allow-scripts"
+        className="h-[calc(100vh-48px)] w-full border-0 bg-white"
+        sandbox="allow-downloads allow-forms allow-modals allow-popups allow-same-origin allow-scripts"
         srcDoc={srcDoc}
         title="HTML preview"
       />
@@ -166,9 +172,16 @@ function PreviewView() {
 
 function PreviewLoadingState() {
   return (
-    <main className="grid min-h-screen place-items-center px-4">
-      <div className="rounded-2xl border border-[var(--edge)] bg-[var(--paper)] px-6 py-5 text-sm text-[#4f4434] shadow-[var(--shadow)]">
-        Preparing preview...
+    <main className="grid min-h-screen place-items-center px-4" style={{ background: "var(--bg)" }}>
+      <div
+        className="rounded-2xl px-6 py-5 text-sm font-medium"
+        style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          color: "var(--ink-2)",
+        }}
+      >
+        Preparing preview…
       </div>
     </main>
   );
